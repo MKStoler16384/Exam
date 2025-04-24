@@ -32,5 +32,32 @@
     "options": ["HTML", "CSS", "JavaScript", "Python"],
     "answer": [0, 1, 2],
     "explanation": "前端三大基础技术是 HTML、CSS 和 JavaScript。"
+  },
+  {
+    "type": "choice",
+    "question": "下列哪个标签用于插入图片？",
+    "options": ["<img>", "<div>", "<span>", "<table>"],
+    "answer": 0,
+    "explanation": "<img> 标签用于在HTML中插入图片。"
+  },
+  {
+    "type": "blank",
+    "question": "请填写CSS中用于设置字体颜色的属性名：",
+    "answer": ["color"],
+    "explanation": "CSS中用于设置字体颜色的属性是 color。"
+  },
+  {
+    "type": "multi",
+    "question": "以下哪些是JavaScript的循环语句？（多选）",
+    "options": ["for", "while", "repeat", "do...while"],
+    "answer": [0, 1, 3],
+    "explanation": "JavaScript的循环语句有 for、while 和 do...while。"
+  },
+  {
+    "type": "choice",
+    "question": "在HTML中，哪个标签用于创建有序列表？",
+    "options": ["<ul>", "<ol>", "<li>", "<dl>"],
+    "answer": 1,
+    "explanation": "<ol> 标签用于创建有序列表。"
   }
 ]
