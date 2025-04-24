@@ -1,0 +1,20 @@
+[
+  {
+    "question": "下列哪项是JavaScript的数据类型？",
+    "options": ["String", "Car", "House", "Tree"],
+    "answer": 0,
+    "explanation": "JavaScript 的基本数据类型包括 String、Number、Boolean、Null、Undefined、Symbol、BigInt 和 Object。"
+  },
+  {
+    "question": "HTML的全称是什么？",
+    "options": ["Hyper Text Markup Language", "Home Tool Markup Language", "Hyperlinks and Text Markup Language", "Hyper Tool Multi Language"],
+    "answer": 0,
+    "explanation": "HTML 的全称是 Hyper Text Markup Language（超文本标记语言）。"
+  },
+  {
+    "question": "CSS用于什么？",
+    "options": ["制作动画", "样式化网页", "编写后端逻辑", "存储数据"],
+    "answer": 1,
+    "explanation": "CSS（层叠样式表）用于为网页添加样式和布局。"
+  }
+]
