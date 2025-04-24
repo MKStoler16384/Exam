@@ -24,14 +24,14 @@
     }
     .md3-card {
       background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      border-radius: 28px;
+      box-shadow: 0 2px 8px rgba(103,80,164,0.10);
       margin-bottom: 2em;
       padding: 2em 1.5em 1.5em 1.5em;
       transition: box-shadow 0.2s;
     }
     .md3-card:hover {
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      box-shadow: 0 4px 16px rgba(103,80,164,0.18);
     }
     .question {
       font-size: 1.15em;
@@ -45,28 +45,35 @@
     .option {
       margin: 0.5em 0;
       padding: 0.5em 0.8em;
-      border-radius: 8px;
+      border-radius: 12px;
       transition: background 0.2s;
     }
     .option:hover {
-      background: #f0f4ff;
+      background: #ece6f7;
     }
     .md3-btn {
-      background: #6750a4;
+      background: linear-gradient(90deg, #6750a4 0%, #d0bcff 100%);
       color: #fff;
       border: none;
       border-radius: 24px;
-      padding: 0.6em 2em;
-      font-size: 1em;
+      padding: 0.7em 2.5em;
+      font-size: 1.08em;
       font-weight: 500;
       cursor: pointer;
-      margin-top: 1em;
+      margin-top: 1.5em;
       margin-bottom: 0.5em;
-      box-shadow: 0 1px 4px rgba(103,80,164,0.08);
-      transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(103,80,164,0.13);
+      transition: background 0.2s, box-shadow 0.2s;
+      display: inline-block;
     }
     .md3-btn:active {
-      background: #4f378b;
+      background: linear-gradient(90deg, #4f378b 0%, #b69df8 100%);
+    }
+    .center-btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
     }
     .result {
       font-weight: 500;
@@ -81,17 +88,46 @@
       color: #d32f2f;
     }
     .explanation {
-      background: #f0f4ff;
+      background: #ece6f7;
       color: #333;
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 1em;
       margin-top: 0.8em;
       font-size: 0.98em;
       border-left: 4px solid #6750a4;
     }
-    #next-btn {
-      display: block;
+    #next-btn, #submit-all-btn {
       margin: 2em auto 3em auto;
+      display: block;
+    }
+    #next-btn {
+      background: linear-gradient(90deg, #6750a4 0%, #d0bcff 100%);
+    }
+    #submit-all-btn {
+      background: linear-gradient(90deg, #6750a4 0%, #d0bcff 100%);
+    }
+    @media (max-width: 700px) {
+      #quiz-container {
+        max-width: 98vw;
+        padding: 0 2vw;
+      }
+      .md3-card {
+        padding: 1.2em 0.5em 1em 0.5em;
+      }
+    }
+    .md3-input {
+      border: 1.5px solid #d0bcff;
+      border-radius: 12px;
+      padding: 0.6em 1em;
+      font-size: 1em;
+      outline: none;
+      transition: border 0.2s;
+      background: #faf8ff;
+      margin-bottom: 0.5em;
+    }
+    .md3-input:focus {
+      border: 1.5px solid #6750a4;
+      background: #ece6f7;
     }
   </style>
 </head>
@@ -100,22 +136,25 @@
   <div id="quiz-container">
     <!-- 题目和选项将由JS渲染 -->
   </div>
-  <button id="next-btn" class="md3-btn">下一题</button>
+  <div class="center-btn">
+    <button id="submit-all-btn" class="md3-btn" style="display:none;">提交答案</button>
+  </div>
+  <div class="center-btn">
+    <button id="next-btn" class="md3-btn">下一题</button>
+  </div>
   <script>
     let questions = [];
     let profile = { numQuestions: 1 };
+    let currentQuestions = [];
 
     function getRandomItems(arr, n) {
-      const result = [];
-      const used = new Set();
-      while (result.length < n && used.size < arr.length) {
-        const idx = Math.floor(Math.random() * arr.length);
-        if (!used.has(idx)) {
-          used.add(idx);
-          result.push(arr[idx]);
-        }
+      // 洗牌算法保证不重复
+      const shuffled = arr.slice();
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
       }
-      return result;
+      return shuffled.slice(0, n);
     }
 
     async function loadData() {
@@ -130,54 +169,121 @@
     function renderQuestions() {
       const container = document.getElementById('quiz-container');
       container.innerHTML = '';
-      const selectedQuestions = getRandomItems(questions, profile.numQuestions);
-      selectedQuestions.forEach((q, idx) => {
+      currentQuestions = getRandomItems(questions, Math.min(profile.numQuestions, questions.length));
+      currentQuestions.forEach((q, idx) => {
         const qDiv = document.createElement('div');
         qDiv.className = 'md3-card';
+        let optionsHtml = '';
+        if (q.type === 'blank') {
+          optionsHtml = `
+            <div class="options">
+              <input type="text" name="blank${idx}" class="md3-input" autocomplete="off" placeholder="请输入答案">
+            </div>
+          `;
+        } else if (q.type === 'multi') {
+          optionsHtml = `
+            <div class="options">
+              ${q.options.map((opt, i) => `
+                <div class="option">
+                  <label>
+                    <input type="checkbox" name="multi${idx}" value="${i}">
+                    ${opt}
+                  </label>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        } else {
+          optionsHtml = `
+            <div class="options">
+              ${q.options.map((opt, i) => `
+                <div class="option">
+                  <label>
+                    <input type="radio" name="option${idx}" value="${i}">
+                    ${opt}
+                  </label>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
         qDiv.innerHTML = `
           <div class="question">${idx + 1}. ${q.question}</div>
-          <div class="options">
-            ${q.options.map((opt, i) => `
-              <div class="option">
-                <label>
-                  <input type="radio" name="option${idx}" value="${i}">
-                  ${opt}
-                </label>
-              </div>
-            `).join('')}
-          </div>
-          <button class="md3-btn submit-btn">提交答案</button>
+          ${optionsHtml}
           <div class="result"></div>
           <div class="explanation" style="display:none;"></div>
         `;
         container.appendChild(qDiv);
+      });
+      document.getElementById('submit-all-btn').style.display = 'block';
+    }
 
-        qDiv.querySelector('.submit-btn').onclick = function() {
-          const selected = qDiv.querySelector(`input[name="option${idx}"]:checked`);
-          const resultDiv = qDiv.querySelector('.result');
-          const explanationDiv = qDiv.querySelector('.explanation');
+    function checkAnswers() {
+      const container = document.getElementById('quiz-container');
+      const cards = container.querySelectorAll('.md3-card');
+      currentQuestions.forEach((q, idx) => {
+        const card = cards[idx];
+        const resultDiv = card.querySelector('.result');
+        const explanationDiv = card.querySelector('.explanation');
+        let correct = false;
+        if (q.type === 'blank') {
+          const input = card.querySelector(`input[name="blank${idx}"]`);
+          if (!input.value.trim()) {
+            resultDiv.textContent = '请填写答案！';
+            resultDiv.className = 'result incorrect';
+            explanationDiv.style.display = 'none';
+            return;
+          }
+          if (typeof q.answer === 'string') {
+            correct = input.value.trim() === q.answer;
+          } else if (Array.isArray(q.answer)) {
+            correct = q.answer.includes(input.value.trim());
+          }
+        } else if (q.type === 'multi') {
+          const selected = Array.from(card.querySelectorAll(`input[name="multi${idx}"]:checked`)).map(cb => parseInt(cb.value));
+          if (selected.length === 0) {
+            resultDiv.textContent = '请选择一个或多个选项！';
+            resultDiv.className = 'result incorrect';
+            explanationDiv.style.display = 'none';
+            return;
+          }
+          // 答案需全部选中且无多选
+          const ans = Array.isArray(q.answer) ? q.answer.slice().sort().join(',') : '';
+          const sel = selected.slice().sort().join(',');
+          correct = ans === sel;
+        } else {
+          const selected = card.querySelector(`input[name="option${idx}"]:checked`);
           if (!selected) {
             resultDiv.textContent = '请选择一个选项！';
             resultDiv.className = 'result incorrect';
             explanationDiv.style.display = 'none';
             return;
           }
-          if (parseInt(selected.value) === q.answer) {
-            resultDiv.textContent = '回答正确！';
-            resultDiv.className = 'result correct';
-            explanationDiv.style.display = 'none';
-          } else {
-            resultDiv.textContent = '回答错误！';
-            resultDiv.className = 'result incorrect';
-            explanationDiv.textContent = q.explanation || '暂无解析';
-            explanationDiv.style.display = 'block';
-          }
-        };
+          correct = parseInt(selected.value) === q.answer;
+        }
+        if (correct) {
+          resultDiv.textContent = '回答正确！';
+          resultDiv.className = 'result correct';
+          explanationDiv.style.display = 'none';
+        } else {
+          resultDiv.textContent = '回答错误！';
+          resultDiv.className = 'result incorrect';
+          explanationDiv.textContent = q.explanation || '暂无解析';
+          explanationDiv.style.display = 'block';
+        }
       });
     }
 
-    document.getElementById('next-btn').onclick = renderQuestions;
-    loadData().then(renderQuestions);
+    document.getElementById('next-btn').onclick = function() {
+      renderQuestions();
+      document.getElementById('submit-all-btn').style.display = 'block';
+    };
+    document.getElementById('submit-all-btn').onclick = checkAnswers;
+
+    loadData().then(() => {
+      renderQuestions();
+      document.getElementById('submit-all-btn').style.display = 'block';
+    });
   </script>
 </body>
 </html>
